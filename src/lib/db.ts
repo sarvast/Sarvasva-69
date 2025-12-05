@@ -1,6 +1,6 @@
 import { openDB, DBSchema } from 'idb';
 
-interface DailyLog {
+export interface DailyLog {
     date: string; // ISO Date "YYYY-MM-DD"
     steps: number;
     water_ml: number;
@@ -12,12 +12,12 @@ interface DailyLog {
     mistakes?: string[];
 }
 
-interface FoodItem {
+export interface FoodItem {
     name: string;
     calories: number;
 }
 
-interface UserSettings {
+export interface UserSettings {
     id: string; // 'default'
     theme_preference?: 'light' | 'dark' | 'system';
     notifications_enabled: boolean;

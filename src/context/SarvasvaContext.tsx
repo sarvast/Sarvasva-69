@@ -107,7 +107,7 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
 
     const addWater = (ml: number) => updateLog({ water_ml: (dailyLog?.water_ml || 0) + ml });
 
-    const addFood = (calories: number, name: string) => {
+    const addFood = (calories: number) => {
         updateLog({ calories_eaten: (dailyLog?.calories_eaten || 0) + calories });
     };
 

@@ -12,7 +12,6 @@ export function Goals() {
 
     // Weight Lost Placeholder (real app would track this over time)
     const weightLost = 0;
-    const currentWeight = metrics.STARTING_WEIGHT_KG - weightLost;
 
     return (
         <div className="space-y-4 animate-in fade-in duration-700">

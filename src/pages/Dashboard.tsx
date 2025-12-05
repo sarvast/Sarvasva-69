@@ -3,7 +3,7 @@ import { GREETINGS } from '../lib/constants';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { ProgressBar } from '../components/ui/ProgressBar';
-import { Footprints, Droplets, Flame, TrendingUp } from 'lucide-react';
+import { Footprints, Droplets, Flame } from 'lucide-react';
 
 export function Dashboard() {
     const { dailyLog, metrics, timelineWeeks, addSteps, addWater, error } = useSarvasva();

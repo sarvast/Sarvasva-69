@@ -3,7 +3,7 @@ import { useSarvasva } from '../context/SarvasvaContext';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { ProgressBar } from '../components/ui/ProgressBar';
-import { Plus, Search, Flame } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 export function Nutrition() {
     const { dailyLog, metrics, foodDatabase, addFood, addFoodToDb } = useSarvasva();
@@ -17,7 +17,7 @@ export function Nutrition() {
     const progress = (dailyLog.calories_eaten / metrics.BMR_ESTIMATE) * 100;
 
     const handleQuickAdd = (food: { name: string; calories: number }) => {
-        addFood(food.calories, food.name);
+        addFood(food.calories);
     };
 
     const handleCreateFood = async () => {
