@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { getDailyLog, saveDailyLog, getAllFoodItems, saveFoodItem } from '../lib/db';
-import { USER_DATA } from '../lib/constants';
+import { getDailyLog, saveDailyLog, getAllFoodItems, saveFoodItem, getUserSettings, saveUserSettings } from '../lib/db';
+import { USER_DATA, calculateBMR, calculateTDEE, calculateBMI, calculateTimelineWeeks, UserSettings } from '../lib/constants';
 
 interface DailyLogState {
     date: string;
@@ -15,7 +15,11 @@ interface DailyLogState {
 }
 
 interface SarvasvaContextType {
-    metrics: typeof USER_DATA;
+    metrics: typeof USER_DATA & {
+        BMR: number;
+        TDEE: number;
+        BMI: string;
+    };
     dailyLog: DailyLogState | null;
     timelineWeeks: number;
     addSteps: (count: number) => void;
@@ -26,6 +30,7 @@ interface SarvasvaContextType {
     logAiHours: (hours: number) => void;
     foodDatabase: { name: string; calories: number }[];
     refreshData: () => void;
+    updateWeight: (weight: number) => Promise<void>;
     error: string | null;
 }
 
@@ -35,6 +40,7 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
     const [dailyLog, setDailyLog] = useState<DailyLogState | null>(null);
     const [timelineWeeks, setTimelineWeeks] = useState(0);
     const [foodDatabase, setFoodDatabase] = useState<{ name: string; calories: number }[]>([]);
+    const [userSettings, setUserSettings] = useState<UserSettings>({ currentWeight: USER_DATA.CURRENT_WEIGHT_KG, activityLevel: USER_DATA.ACTIVITY_FACTOR });
     const [error, setError] = useState<string | null>(null);
 
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -64,9 +70,18 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
             const foods = await getAllFoodItems();
             setFoodDatabase(foods);
 
-            // Timeline Calculation Logic Placeholder
-            const weightDiff = USER_DATA.STARTING_WEIGHT_KG - USER_DATA.TARGET_WEIGHT_KG;
-            setTimelineWeeks(Math.ceil(weightDiff / 0.8)); // Approx 0.8kg/week
+            // Load user settings
+            const settings = await getUserSettings();
+            if (settings) {
+                setUserSettings(settings);
+            } else {
+                // Save default settings
+                await saveUserSettings(userSettings);
+            }
+
+            // Calculate timeline based on current weight
+            const currentWeight = settings?.currentWeight || USER_DATA.CURRENT_WEIGHT_KG;
+            setTimelineWeeks(calculateTimelineWeeks(currentWeight, USER_DATA.TARGET_WEIGHT_KG));
         } catch (err: any) {
             console.error("Context Load Error:", err);
             setError("Failed to load data: " + (err.message || 'Unknown DB Error'));
@@ -120,9 +135,29 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
 
     const logAiHours = (hours: number) => updateLog({ ai_hours: (dailyLog?.ai_hours || 0) + hours });
 
+    const updateWeight = async (weight: number) => {
+        const newSettings = { ...userSettings, currentWeight: weight };
+        setUserSettings(newSettings);
+        await saveUserSettings(newSettings);
+        setTimelineWeeks(calculateTimelineWeeks(weight, USER_DATA.TARGET_WEIGHT_KG));
+    };
+
+    // Calculate dynamic metrics
+    const bmr = calculateBMR(userSettings.currentWeight, USER_DATA.HEIGHT_CM, USER_DATA.AGE);
+    const tdee = calculateTDEE(bmr, userSettings.activityLevel);
+    const bmi = calculateBMI(userSettings.currentWeight, USER_DATA.HEIGHT_CM);
+
+    const dynamicMetrics = {
+        ...USER_DATA,
+        CURRENT_WEIGHT_KG: userSettings.currentWeight,
+        BMR: bmr,
+        TDEE: tdee,
+        BMI: bmi,
+    };
+
     return (
         <SarvasvaContext.Provider value={{
-            metrics: USER_DATA,
+            metrics: dynamicMetrics,
             dailyLog,
             timelineWeeks,
             addSteps,
@@ -133,6 +168,7 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
             logAiHours,
             foodDatabase,
             refreshData: loadData,
+            updateWeight,
             error
         }}>
             {children}

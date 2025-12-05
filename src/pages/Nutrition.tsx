@@ -13,8 +13,8 @@ export function Nutrition() {
 
     if (!dailyLog) return <div>Loading...</div>;
 
-    const remaining = metrics.BMR_ESTIMATE - dailyLog.calories_eaten + dailyLog.calories_burned;
-    const progress = (dailyLog.calories_eaten / metrics.BMR_ESTIMATE) * 100;
+    const remaining = metrics.BMR - dailyLog.calories_eaten + dailyLog.calories_burned;
+    const progress = (dailyLog.calories_eaten / metrics.BMR) * 100;
 
     const handleQuickAdd = (food: { name: string; calories: number }) => {
         addFood(food.calories);
@@ -37,7 +37,7 @@ export function Nutrition() {
                     <h1 className="text-2xl font-bold text-white">Nutrition</h1>
                     <div className="text-right">
                         <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-accent to-brand-secondary">
-                            {dailyLog.calories_eaten} / {metrics.BMR_ESTIMATE}
+                            {dailyLog.calories_eaten} / {metrics.BMR}
                         </div>
                     </div>
                 </div>

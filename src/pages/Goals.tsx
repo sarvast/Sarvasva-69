@@ -6,11 +6,8 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 export function Goals() {
     const { metrics, timelineWeeks } = useSarvasva();
 
-    // BMI Calc
-    const heightM = metrics.HEIGHT_CM / 100;
-    const bmi = (metrics.STARTING_WEIGHT_KG / (heightM * heightM)).toFixed(1);
-
-    // Weight Lost Placeholder (real app would track this over time)
+    // Weight Lost Calculation
+    const weightLost = metrics.STARTING_WEIGHT_KG - metrics.CURRENT_WEIGHT_KG;
 
     return (
         <div className="space-y-4 animate-in fade-in duration-700">
@@ -37,19 +34,19 @@ export function Goals() {
                 <GlassCard className="p-4 space-y-2">
                     <div className="flex items-center gap-2 text-brand-secondary">
                         <Scale size={20} />
-                        <span className="font-semibold">BMI</span>
+                        <span className="font-semibold">Current</span>
                     </div>
-                    <div className="text-2xl font-bold text-white">{bmi}</div>
-                    <div className="text-xs text-slate-400">Obese Class I</div>
+                    <div className="text-2xl font-bold text-white">{metrics.CURRENT_WEIGHT_KG}kg</div>
+                    <div className="text-xs text-slate-400">BMI: {metrics.BMI}</div>
                 </GlassCard>
 
                 <GlassCard className="p-4 space-y-2">
                     <div className="flex items-center gap-2 text-success">
                         <Activity size={20} />
-                        <span className="font-semibold">BMR</span>
+                        <span className="font-semibold">Lost</span>
                     </div>
-                    <div className="text-2xl font-bold text-white">{metrics.BMR_ESTIMATE}</div>
-                    <div className="text-xs text-slate-400">Base Burn / Day</div>
+                    <div className="text-2xl font-bold text-white">{weightLost.toFixed(1)}kg</div>
+                    <div className="text-xs text-slate-400">Progress Made</div>
                 </GlassCard>
             </div>
 

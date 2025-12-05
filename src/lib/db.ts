@@ -80,7 +80,17 @@ export const saveFoodItem = async (item: FoodItem) => {
 export const getAllFoodItems = async () => {
     const db = await initDB();
     return db.getAll('food_database');
-}
+};
+
+export const getUserSettings = async () => {
+    const db = await initDB();
+    return db.get('settings', 'default');
+};
+
+export const saveUserSettings = async (settings: UserSettings) => {
+    const db = await initDB();
+    return db.put('settings', { ...settings, id: 'default' });
+};
 
 export const clearDatabase = async () => {
     const deleteRequest = indexedDB.deleteDatabase(DB_NAME);

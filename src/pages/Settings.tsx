@@ -1,26 +1,77 @@
+import { useState } from 'react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { useSarvasva } from '../context/SarvasvaContext';
 import { useReminders } from '../hooks/useReminders';
-import { Bell, Trash2 } from 'lucide-react';
+import { Bell, Trash2, Scale, Edit3 } from 'lucide-react';
 import { clearDatabase } from '../lib/db';
 
 export function Settings() {
-    const { metrics } = useSarvasva();
+    const { metrics, updateWeight } = useSarvasva();
     const { permission, requestPermission } = useReminders();
+    const [isEditingWeight, setIsEditingWeight] = useState(false);
+    const [newWeight, setNewWeight] = useState(metrics.CURRENT_WEIGHT_KG.toString());
+
+    const handleWeightUpdate = async () => {
+        const weight = parseFloat(newWeight);
+        if (weight > 0 && weight !== metrics.CURRENT_WEIGHT_KG) {
+            await updateWeight(weight);
+        }
+        setIsEditingWeight(false);
+    };
 
     return (
         <div className="space-y-4 animate-in fade-in duration-500">
             <h1 className="text-2xl font-bold text-white">Settings</h1>
 
             {/* Profile Summary */}
-            <GlassCard className="p-6 flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-2xl font-bold text-white">
-                    {metrics.NAME[0]}
+            <GlassCard className="p-6">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-2xl font-bold text-white">
+                        {metrics.NAME[0]}
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-white">{metrics.FULL_NAME}</h2>
+                        <p className="text-sm text-slate-400">Target: {metrics.TARGET_WEIGHT_KG} kg</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-lg font-bold text-white">{metrics.FULL_NAME}</h2>
-                    <p className="text-sm text-slate-400">Target: {metrics.TARGET_WEIGHT_KG} kg</p>
+                
+                {/* Current Weight Section */}
+                <div className="border-t border-white/10 pt-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Scale size={20} className="text-brand-primary" />
+                            <div>
+                                <div className="text-white font-medium">Current Weight</div>
+                                <div className="text-xs text-slate-400">BMI: {metrics.BMI} | BMR: {metrics.BMR} kcal</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {isEditingWeight ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        value={newWeight}
+                                        onChange={(e) => setNewWeight(e.target.value)}
+                                        className="w-20 glass-input text-white text-center py-1"
+                                        step="0.1"
+                                        min="30"
+                                        max="200"
+                                    />
+                                    <span className="text-white text-sm">kg</span>
+                                    <Button size="sm" onClick={handleWeightUpdate}>Save</Button>
+                                    <Button size="sm" variant="ghost" onClick={() => setIsEditingWeight(false)}>Cancel</Button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-bold text-white">{metrics.CURRENT_WEIGHT_KG}kg</span>
+                                    <Button size="sm" variant="ghost" onClick={() => setIsEditingWeight(true)}>
+                                        <Edit3 size={16} />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </GlassCard>
 

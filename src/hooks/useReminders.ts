@@ -77,7 +77,7 @@ export function useReminders() {
             // Schedule: 9 PM (21) -> End of Day Impact Report
             if (hour === 21 && lastNotifiedHour !== 21) {
                 const stepDeficit = metrics.STEP_GOAL - dailyLog.steps;
-                const calorieDeficit = (metrics.BMR_ESTIMATE + dailyLog.calories_burned) - dailyLog.calories_eaten;
+                const calorieDeficit = (metrics.BMR + dailyLog.calories_burned) - dailyLog.calories_eaten;
 
                 let impactMsg = "Great day! You are on track to 80kg.";
                 let title = "🌟 End of Day Summary";

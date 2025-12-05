@@ -28,7 +28,7 @@ export function Dashboard() {
 
     if (!dailyLog) return <div className="p-8 text-white">Loading...</div>;
 
-    const remainingCalories = metrics.BMR_ESTIMATE - dailyLog.calories_eaten + dailyLog.calories_burned;
+    const remainingCalories = metrics.BMR - dailyLog.calories_eaten + dailyLog.calories_burned;
     // Simple logic: if eating > (BMR + Burned), negative remaining.
 
     // Timeline Logic Visualization
@@ -120,7 +120,7 @@ export function Dashboard() {
                         <span className="text-slate-400">Eaten</span>
                         <span className="text-white">{dailyLog.calories_eaten}</span>
                     </div>
-                    <ProgressBar progress={(dailyLog.calories_eaten / metrics.BMR_ESTIMATE) * 100} color="bg-brand-accent" />
+                    <ProgressBar progress={(dailyLog.calories_eaten / metrics.BMR) * 100} color="bg-brand-accent" />
 
                     <div className="flex justify-between text-sm">
                         <span className="text-slate-400">Burned (Steps + Workout)</span>
