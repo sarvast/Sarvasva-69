@@ -120,7 +120,7 @@ export function Dashboard() {
                         <span className="text-slate-400">Eaten</span>
                         <span className="text-white">{dailyLog.calories_eaten}</span>
                     </div>
-                    <ProgressBar progress={(dailyLog.calories_eaten / metrics.BMR_ESTIMATE) * 100} color="bg-brand-accent" height={8} />
+                    <ProgressBar progress={(dailyLog.calories_eaten / metrics.BMR_ESTIMATE) * 100} color="bg-brand-accent" />
 
                     <div className="flex justify-between text-sm">
                         <span className="text-slate-400">Burned (Steps + Workout)</span>
