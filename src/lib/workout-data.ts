@@ -82,3 +82,25 @@ export const getWorkoutForToday = (): DailyWorkout => {
     const day = new Date().getDay();
     return WORKOUT_SCHEDULE[day];
 };
+
+export const getDefaultExercisesForDay = (dayIndex: number) => {
+    const workout = WORKOUT_SCHEDULE[dayIndex];
+    if (!workout || !workout.exercises) return [];
+    
+    return workout.exercises.map((exercise, index) => ({
+        id: `default-${dayIndex}-${index}`,
+        name: exercise.name,
+        sets: exercise.sets,
+        dayIndex,
+        isDefault: true,
+        isCompleted: false
+    }));
+};
+
+export const getAllDefaultExercises = () => {
+    const exercises: any[] = [];
+    for (let day = 0; day <= 6; day++) {
+        exercises.push(...getDefaultExercisesForDay(day));
+    }
+    return exercises;
+};

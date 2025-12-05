@@ -51,21 +51,88 @@ export function Nutrition() {
             {/* Quick Add Grid */}
             <div className="grid grid-cols-2 gap-2">
                 {/* Common Presets (Hardcoded + Saved) */}
-                <Button
-                    variant="secondary"
-                    className="h-auto p-4 flex flex-col gap-1 items-start"
-                    onClick={() => handleQuickAdd({ name: 'Roti', calories: 80 })}
-                >
-                    <span className="font-semibold text-white">Roti</span>
-                    <span className="text-xs text-slate-400">80 kcal</span>
+
+
+                {/* Default Indian Foods */}
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Roti/Chapati', calories: 70 })}>
+                    <span className="font-semibold text-white">🫓 1 Roti/Chapati</span>
+                    <span className="text-xs text-slate-400">1 medium = 70 kcal</span>
                 </Button>
-                <Button
-                    variant="secondary"
-                    className="h-auto p-4 flex flex-col items-start gap-1"
-                    onClick={() => handleQuickAdd({ name: 'Egg', calories: 70 })}
-                >
-                    <span className="font-semibold text-white">Egg</span>
-                    <span className="text-xs text-slate-400">70 kcal</span>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Bowl Rice', calories: 130 })}>
+                    <span className="font-semibold text-white">🍚 1 Bowl Rice</span>
+                    <span className="text-xs text-slate-400">1 bowl cooked = 130 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Boiled Egg', calories: 70 })}>
+                    <span className="font-semibold text-white">🍳 1 Boiled Egg</span>
+                    <span className="text-xs text-slate-400">1 egg = 70 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Omelette', calories: 100 })}>
+                    <span className="font-semibold text-white">🍳 1 Omelette</span>
+                    <span className="text-xs text-slate-400">1 egg + oil = 100 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Slice White Bread', calories: 60 })}>
+                    <span className="font-semibold text-white">🍞 1 Slice White Bread</span>
+                    <span className="text-xs text-slate-400">1 slice = 60 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Slice Brown Bread', calories: 45 })}>
+                    <span className="font-semibold text-white">🍞 1 Slice Brown Bread</span>
+                    <span className="text-xs text-slate-400">1 slice = 45 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Aloo Paratha', calories: 230 })}>
+                    <span className="font-semibold text-white">🧈 1 Aloo Paratha</span>
+                    <span className="text-xs text-slate-400">1 paratha + oil = 230 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Plain Paratha', calories: 190 })}>
+                    <span className="font-semibold text-white">🧈 1 Plain Paratha</span>
+                    <span className="text-xs text-slate-400">1 paratha = 190 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Katori Dal', calories: 130 })}>
+                    <span className="font-semibold text-white">🍲 1 Katori Dal</span>
+                    <span className="text-xs text-slate-400">1 katori = 130 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Katori Aloo Sabzi', calories: 150 })}>
+                    <span className="font-semibold text-white">🥔 1 Katori Aloo Sabzi</span>
+                    <span className="text-xs text-slate-400">1 katori = 150 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Bowl Chole', calories: 180 })}>
+                    <span className="font-semibold text-white">🧆 1 Bowl Chole</span>
+                    <span className="text-xs text-slate-400">1 small bowl = 180 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Bowl Rajma', calories: 200 })}>
+                    <span className="font-semibold text-white">🍛 1 Bowl Rajma</span>
+                    <span className="text-xs text-slate-400">1 bowl = 200 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '100g Chicken Curry', calories: 170 })}>
+                    <span className="font-semibold text-white">🍗 100g Chicken Curry</span>
+                    <span className="text-xs text-slate-400">100g = 170 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Gulab Jamun', calories: 150 })}>
+                    <span className="font-semibold text-white">🧁 1 Gulab Jamun</span>
+                    <span className="text-xs text-slate-400">1 piece = 150 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Banana', calories: 90 })}>
+                    <span className="font-semibold text-white">🍌 1 Banana</span>
+                    <span className="text-xs text-slate-400">1 medium = 90 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '1 Apple', calories: 52 })}>
+                    <span className="font-semibold text-white">🍎 1 Apple</span>
+                    <span className="text-xs text-slate-400">1 medium = 52 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '200ml Tea (Sweet)', calories: 100 })}>
+                    <span className="font-semibold text-white">☕ 200ml Tea (Sweet)</span>
+                    <span className="text-xs text-slate-400">200ml + sugar = 100 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '200ml Tea (No Sugar)', calories: 60 })}>
+                    <span className="font-semibold text-white">☕ 200ml Tea (No Sugar)</span>
+                    <span className="text-xs text-slate-400">200ml no sugar = 60 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '100ml Milk Coffee', calories: 80 })}>
+                    <span className="font-semibold text-white">☕ 100ml Milk Coffee</span>
+                    <span className="text-xs text-slate-400">100ml + sugar = 80 kcal</span>
+                </Button>
+                <Button variant="secondary" className="h-auto p-4 flex flex-col items-start gap-1" onClick={() => handleQuickAdd({ name: '200ml Milk', calories: 120 })}>
+                    <span className="font-semibold text-white">🥛 200ml Milk</span>
+                    <span className="text-xs text-slate-400">200ml glass = 120 kcal</span>
                 </Button>
 
                 {/* Render Database Items */}

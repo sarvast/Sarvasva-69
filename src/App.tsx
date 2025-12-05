@@ -4,23 +4,44 @@ import { Fitness } from './pages/Fitness';
 import { Nutrition } from './pages/Nutrition';
 import { Goals } from './pages/Goals';
 import { Settings } from './pages/Settings';
+import { Onboarding } from './pages/Onboarding';
 import { BottomNav } from './components/ui/BottomNav';
-import { SarvasvaProvider } from './context/SarvasvaContext';
-
-import { useReminders } from './hooks/useReminders';
+import { InstallPrompt } from './components/InstallPrompt';
+import { SarvasvaProvider, useSarvasva } from './context/SarvasvaContext';
+// import { useReminders } from './hooks/useReminders';
+import { useNativeApp } from './hooks/useNativeApp';
+import { useEffect } from 'react';
 
 function AppContent() {
-    useReminders(); // Activate logical reminders
+    const { isOnboarded, completeOnboarding } = useSarvasva();
+    useNativeApp();
+    
+    useEffect(() => {
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+        
+        // Prevent context menu on long press
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+    }, []);
+
+    if (!isOnboarded) {
+        return <Onboarding onComplete={completeOnboarding} />;
+    }
 
     return (
         <BrowserRouter>
             <div className="min-h-screen w-full bg-slate-950 font-sans selection:bg-brand-primary selection:text-white overflow-x-hidden">
-                {/* Dynamic Background Layer */}
                 <div className="fixed inset-0 pointer-events-none overflow-hidden">
                     <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-brand-primary/10 blur-[100px] animate-pulse-slow" />
                     <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-brand-accent/10 blur-[100px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
                 </div>
-
                 <div className="w-full min-h-screen relative">
                     <main className="px-4 pt-4 pb-24 relative z-10 w-full max-w-md mx-auto">
                         <Routes>
@@ -34,6 +55,7 @@ function AppContent() {
                     </main>
                     <BottomNav />
                 </div>
+                <InstallPrompt />
             </div>
         </BrowserRouter>
     );

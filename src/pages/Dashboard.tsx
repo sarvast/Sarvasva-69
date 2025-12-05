@@ -1,19 +1,23 @@
 import { useSarvasva } from '../context/SarvasvaContext';
-import { GREETINGS } from '../lib/constants';
+import { getGreetings } from '../lib/constants';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { ProgressBar } from '../components/ui/ProgressBar';
-import { Footprints, Droplets, Flame } from 'lucide-react';
+import { useStepTracker } from '../hooks/useStepTracker';
+import { Footprints, Droplets, Flame, Smartphone } from 'lucide-react';
 
 export function Dashboard() {
-    const { dailyLog, metrics, timelineWeeks, addSteps, addWater, error } = useSarvasva();
+    const { dailyLog, userProfile, metrics, timelineWeeks, addSteps, addWater, error } = useSarvasva();
+    const { permission, supported, isTracking, toggleTracking } = useStepTracker();
 
     const getGreeting = () => {
+        if (!userProfile) return 'Welcome!';
+        const greetings = getGreetings(userProfile.name);
         const hour = new Date().getHours();
-        if (hour < 12) return GREETINGS.MORNING;
-        if (hour < 16) return GREETINGS.AFTERNOON;
-        if (hour < 21) return GREETINGS.EVENING;
-        return GREETINGS.NIGHT;
+        if (hour < 12) return greetings.MORNING;
+        if (hour < 16) return greetings.AFTERNOON;
+        if (hour < 21) return greetings.EVENING;
+        return greetings.NIGHT;
     };
 
     if (error) return (
@@ -26,7 +30,7 @@ export function Dashboard() {
         </div>
     );
 
-    if (!dailyLog) return <div className="p-8 text-white">Loading...</div>;
+    if (!dailyLog || !userProfile) return <div className="p-8 text-white">Loading...</div>;
 
     const remainingCalories = metrics.BMR - dailyLog.calories_eaten + dailyLog.calories_burned;
     // Simple logic: if eating > (BMR + Burned), negative remaining.
@@ -42,16 +46,35 @@ export function Dashboard() {
             <div className="space-y-1">
                 <h1 className="text-xl font-medium text-slate-300">{getGreeting()}</h1>
                 <p className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                    Sarthak Srivastava
+                    {userProfile.name}
                 </p>
             </div>
+
+            {/* User Metrics Card */}
+            <GlassCard className="p-6">
+                <h2 className="text-lg font-semibold text-white mb-4">Your Metrics</h2>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div className="text-2xl font-bold text-brand-primary">{metrics.BMR}</div>
+                        <div className="text-xs text-slate-400">BMR (kcal)</div>
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-brand-secondary">{metrics.TDEE}</div>
+                        <div className="text-xs text-slate-400">TDEE (kcal)</div>
+                    </div>
+                    <div>
+                        <div className="text-2xl font-bold text-brand-accent">{metrics.BMI}</div>
+                        <div className="text-xs text-slate-400">BMI</div>
+                    </div>
+                </div>
+            </GlassCard>
 
             {/* Timeline Impact Card */}
             <GlassCard className={`p-6 border-l-4 ${isDeficitOnTrack ? 'border-l-success' : 'border-l-danger'}`}>
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <h2 className="text-lg font-semibold text-white">Transformation Timeline</h2>
-                        <p className="text-sm text-slate-400">Estimated time to 80kg</p>
+                        <p className="text-sm text-slate-400">Estimated time to {userProfile.targetWeight}kg</p>
                     </div>
                     <div className="text-right">
                         <div className="text-3xl font-bold text-white">{timelineWeeks} <span className="text-sm font-normal text-slate-400">weeks</span></div>
@@ -61,10 +84,7 @@ export function Dashboard() {
                     </div>
                 </div>
                 {/* Visual Timeline Bar */}
-                <div className="h-2 w-full bg-glass-surface rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-primary w-[30%]" />
-                    {/* Hardcoded 30% progress for visual start */}
-                </div>
+                <ProgressBar progress={((userProfile.startingWeight - userProfile.currentWeight) / (userProfile.startingWeight - userProfile.targetWeight)) * 100} color="bg-brand-primary" height={8} />
             </GlassCard>
 
             {/* Quick Stats Grid */}
@@ -77,9 +97,24 @@ export function Dashboard() {
                     </div>
                     <div>
                         <div className="text-3xl font-bold text-white">{dailyLog.steps.toLocaleString()}</div>
-                        <div className="text-xs text-slate-400">/ 10,000 goal</div>
+                        <div className="text-xs text-slate-400">/ {userProfile.stepGoal.toLocaleString()} goal</div>
+                        <ProgressBar progress={(dailyLog.steps / userProfile.stepGoal) * 100} color="bg-brand-secondary" height={4} />
                     </div>
                     <div className="flex gap-1">
+                        {supported && (
+                            <Button 
+                                size="sm" 
+                                variant={permission === 'granted' && isTracking ? "primary" : "secondary"} 
+                                onClick={toggleTracking} 
+                                className="flex-1 text-xs py-2 h-7"
+                            >
+                                <Smartphone size={12} /> 
+                                {permission === 'granted' ? 
+                                    `${isTracking ? 'Stop' : 'Start'} ${isTracking ? '🟢' : '🔴'}` : 
+                                    'Enable Auto'
+                                }
+                            </Button>
+                        )}
                         <Button size="sm" variant="secondary" onClick={() => addSteps(500)} className="flex-1 text-xs py-2 h-7">+500</Button>
                         <Button size="sm" variant="secondary" onClick={() => addSteps(1000)} className="flex-1 text-xs py-2 h-7">+1k</Button>
                     </div>
@@ -93,7 +128,8 @@ export function Dashboard() {
                     </div>
                     <div>
                         <div className="text-3xl font-bold text-white">{dailyLog.water_ml} <span className="text-base font-normal text-slate-500">ml</span></div>
-                        <div className="text-xs text-slate-400">/ 4,000 ml</div>
+                        <div className="text-xs text-slate-400">/ {userProfile.waterGoal.toLocaleString()} ml</div>
+                        <ProgressBar progress={(dailyLog.water_ml / userProfile.waterGoal) * 100} color="bg-brand-primary" height={4} />
                     </div>
                     <div className="flex gap-1">
                         <Button size="sm" variant="secondary" onClick={() => addWater(250)} className="flex-1 text-xs py-2 h-7">+250</Button>

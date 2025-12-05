@@ -1,20 +1,37 @@
 
-export const USER_DATA = {
-    NAME: "Sarvasva",
-    FULL_NAME: "Sarthak Srivastava",
-    HEIGHT_CM: 183,
-    STARTING_WEIGHT_KG: 115,
-    CURRENT_WEIGHT_KG: 115, // Will be updated from settings
-    TARGET_WEIGHT_KG: 80,
-    AGE: 25, // For BMR calculation
-    ACTIVITY_FACTOR: 1.375, // Lightly active to start
-    STEP_GOAL: 10000,
-    WATER_GOAL_ML: 4000,
+export interface UserProfile {
+    name: string;
+    height: number; // cm
+    startingWeight: number; // kg
+    currentWeight: number; // kg
+    targetWeight: number; // kg
+    age: number;
+    gender: 'male' | 'female';
+    activityFactor: number;
+    stepGoal: number;
+    waterGoal: number; // ml
+    bmr?: number;
+    tdee?: number;
+    bmi?: number;
+}
+
+export const DEFAULT_USER_DATA: UserProfile = {
+    name: "",
+    height: 170,
+    startingWeight: 70,
+    currentWeight: 70,
+    targetWeight: 65,
+    age: 25,
+    gender: 'male',
+    activityFactor: 1.375,
+    stepGoal: 10000,
+    waterGoal: 4000,
 };
 
 // Calculate BMR using Mifflin-St Jeor Equation
-export const calculateBMR = (weight: number, height: number, age: number) => {
-    return Math.round(10 * weight + 6.25 * height - 5 * age + 5);
+export const calculateBMR = (weight: number, height: number, age: number, gender: 'male' | 'female') => {
+    const base = 10 * weight + 6.25 * height - 5 * age;
+    return Math.round(gender === 'male' ? base + 5 : base - 161);
 };
 
 // Calculate TDEE
@@ -42,9 +59,9 @@ export const APP_CONFIG = {
     STUDY_GOAL_HRS: 4,
 };
 
-export const GREETINGS = {
-    MORNING: "Good Morning, Sarvasva 🌅. Time to dominate.",
-    AFTERNOON: "Good Afternoon, Sarvasva ☀️. Stay focused.",
-    EVENING: "Good Evening, Sarvasva 🌆. Push harder.",
-    NIGHT: "Good Night, Sarvasva 🌙. Did you earn it?",
-};
+export const getGreetings = (name: string) => ({
+    MORNING: `Good Morning, ${name} 🌅. Time to dominate.`,
+    AFTERNOON: `Good Afternoon, ${name} ☀️. Stay focused.`,
+    EVENING: `Good Evening, ${name} 🌆. Push harder.`,
+    NIGHT: `Good Night, ${name} 🌙. Did you earn it?`,
+});

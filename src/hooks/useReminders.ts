@@ -50,8 +50,8 @@ export function useReminders() {
 
             // Schedule: 2 PM (14) to 8 PM (20) -> Hourly Updates
             if (hour >= 14 && hour <= 20) {
-                const remainingSteps = Math.max(0, metrics.STEP_GOAL - dailyLog.steps);
-                const remainingWater = Math.max(0, metrics.WATER_GOAL_ML - dailyLog.water_ml);
+                const remainingSteps = Math.max(0, 10000 - dailyLog.steps);
+                const remainingWater = Math.max(0, 3000 - dailyLog.water_ml);
 
                 // Only notify if tasks are incomplete
                 if (remainingSteps > 2000 || remainingWater > 1000 || !dailyLog.workout_done) {
@@ -76,7 +76,7 @@ export function useReminders() {
 
             // Schedule: 9 PM (21) -> End of Day Impact Report
             if (hour === 21 && lastNotifiedHour !== 21) {
-                const stepDeficit = metrics.STEP_GOAL - dailyLog.steps;
+                const stepDeficit = 10000 - dailyLog.steps;
                 const calorieDeficit = (metrics.BMR + dailyLog.calories_burned) - dailyLog.calories_eaten;
 
                 let impactMsg = "Great day! You are on track to 80kg.";

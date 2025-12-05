@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { getDailyLog, saveDailyLog, getAllFoodItems, saveFoodItem, getUserSettings, saveUserSettings, UserSettings } from '../lib/db';
-import { USER_DATA, calculateBMR, calculateTDEE, calculateBMI, calculateTimelineWeeks } from '../lib/constants';
+import { getDailyLog, saveDailyLog, getAllFoodItems, saveFoodItem, getUserSettings, saveUserSettings, UserSettings, getCustomExercises, saveCustomExercise, deleteCustomExercise, CustomExercise, saveExerciseCompletion, getExerciseCompletions, ExerciseCompletion } from '../lib/db';
+import { UserProfile, calculateBMR, calculateTDEE, calculateBMI, calculateTimelineWeeks } from '../lib/constants';
+import { getAllDefaultExercises } from '../lib/workout-data';
 
 interface DailyLogState {
     date: string;
@@ -15,22 +16,33 @@ interface DailyLogState {
 }
 
 interface SarvasvaContextType {
-    metrics: typeof USER_DATA & {
+    userProfile: UserProfile | null;
+    isOnboarded: boolean;
+    metrics: {
         BMR: number;
         TDEE: number;
         BMI: string;
     };
     dailyLog: DailyLogState | null;
     timelineWeeks: number;
+    customExercises: CustomExercise[];
+    exerciseCompletions: ExerciseCompletion[];
     addSteps: (count: number) => void;
     addWater: (ml: number) => void;
     addFood: (calories: number) => void;
     addFoodToDb: (name: string, calories: number) => Promise<void>;
     toggleWorkout: () => void;
+    toggleExerciseCompletion: (exerciseId: string) => Promise<void>;
     logAiHours: (hours: number) => void;
     foodDatabase: { name: string; calories: number }[];
     refreshData: () => void;
     updateWeight: (weight: number) => Promise<void>;
+    updateTargetWeight: (weight: number) => Promise<void>;
+    updateGoals: (stepGoal: number, waterGoal: number) => Promise<void>;
+    completeOnboarding: (profile: UserProfile) => Promise<void>;
+    addCustomExercise: (exercise: Omit<CustomExercise, 'id'>) => Promise<void>;
+    removeCustomExercise: (id: string) => Promise<void>;
+    initializeDefaultExercises: () => Promise<void>;
     error: string | null;
 }
 
@@ -40,12 +52,10 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
     const [dailyLog, setDailyLog] = useState<DailyLogState | null>(null);
     const [timelineWeeks, setTimelineWeeks] = useState(0);
     const [foodDatabase, setFoodDatabase] = useState<{ name: string; calories: number }[]>([]);
-    const [userSettings, setUserSettings] = useState<UserSettings>({
-        id: 'default',
-        notifications_enabled: true,
-        currentWeight: USER_DATA.CURRENT_WEIGHT_KG,
-        activityLevel: USER_DATA.ACTIVITY_FACTOR
-    });
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [isOnboarded, setIsOnboarded] = useState(false);
+    const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+    const [exerciseCompletions, setExerciseCompletions] = useState<ExerciseCompletion[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -75,29 +85,26 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
             const foods = await getAllFoodItems();
             setFoodDatabase(foods);
 
-            // Load user settings
+            // Load user settings and profile
             const settings = await getUserSettings();
-            if (settings) {
-                setUserSettings({
-                    ...settings,
-                    currentWeight: settings.currentWeight || USER_DATA.CURRENT_WEIGHT_KG,
-                    activityLevel: settings.activityLevel || USER_DATA.ACTIVITY_FACTOR
+            if (settings?.isOnboarded && settings.profile) {
+                setUserProfile({
+                    ...settings.profile,
+                    currentWeight: settings.currentWeight || settings.profile.startingWeight
                 });
+                setIsOnboarded(true);
+                setTimelineWeeks(calculateTimelineWeeks(settings.currentWeight || settings.profile.startingWeight, settings.profile.targetWeight));
             } else {
-                // Save default settings
-                const defaultSettings = {
-                    id: 'default',
-                    notifications_enabled: true,
-                    currentWeight: USER_DATA.CURRENT_WEIGHT_KG,
-                    activityLevel: USER_DATA.ACTIVITY_FACTOR
-                };
-                await saveUserSettings(defaultSettings);
-                setUserSettings(defaultSettings);
+                setIsOnboarded(false);
             }
 
-            // Calculate timeline based on current weight
-            const currentWeight = settings?.currentWeight || USER_DATA.CURRENT_WEIGHT_KG;
-            setTimelineWeeks(calculateTimelineWeeks(currentWeight, USER_DATA.TARGET_WEIGHT_KG));
+            // Load custom exercises
+            const exercises = await getCustomExercises();
+            setCustomExercises(exercises);
+
+            // Load exercise completions for today
+            const completions = await getExerciseCompletions(today);
+            setExerciseCompletions(completions);
         } catch (err: any) {
             console.error("Context Load Error:", err);
             setError("Failed to load data: " + (err.message || 'Unknown DB Error'));
@@ -152,41 +159,129 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
     const logAiHours = (hours: number) => updateLog({ ai_hours: (dailyLog?.ai_hours || 0) + hours });
 
     const updateWeight = async (weight: number) => {
-        const newSettings = { ...userSettings, currentWeight: weight };
-        setUserSettings(newSettings);
-        await saveUserSettings(newSettings);
-        setTimelineWeeks(calculateTimelineWeeks(weight, USER_DATA.TARGET_WEIGHT_KG));
+        if (!userProfile) return;
+        const updatedProfile = { 
+            ...userProfile, 
+            currentWeight: weight,
+            bmr: calculateBMR(weight, userProfile.height, userProfile.age, userProfile.gender),
+            tdee: calculateTDEE(calculateBMR(weight, userProfile.height, userProfile.age, userProfile.gender), userProfile.activityFactor),
+            bmi: parseFloat(calculateBMI(weight, userProfile.height))
+        };
+        setUserProfile(updatedProfile);
+        const settings = await getUserSettings();
+        if (settings) {
+            await saveUserSettings({ ...settings, currentWeight: weight, profile: updatedProfile });
+        }
+        setTimelineWeeks(calculateTimelineWeeks(weight, userProfile.targetWeight));
     };
 
-    // Calculate dynamic metrics
-    const currentWeight = userSettings.currentWeight || USER_DATA.CURRENT_WEIGHT_KG;
-    const activityLevel = userSettings.activityLevel || USER_DATA.ACTIVITY_FACTOR;
-    const bmr = calculateBMR(currentWeight, USER_DATA.HEIGHT_CM, USER_DATA.AGE);
-    const tdee = calculateTDEE(bmr, activityLevel);
-    const bmi = calculateBMI(currentWeight, USER_DATA.HEIGHT_CM);
-
-    const dynamicMetrics = {
-        ...USER_DATA,
-        CURRENT_WEIGHT_KG: currentWeight,
-        BMR: bmr,
-        TDEE: tdee,
-        BMI: bmi,
+    const updateTargetWeight = async (weight: number) => {
+        if (!userProfile) return;
+        const updatedProfile = { ...userProfile, targetWeight: weight };
+        setUserProfile(updatedProfile);
+        const settings = await getUserSettings();
+        if (settings) {
+            await saveUserSettings({ ...settings, profile: updatedProfile });
+        }
+        setTimelineWeeks(calculateTimelineWeeks(userProfile.currentWeight, weight));
     };
+
+    const updateGoals = async (stepGoal: number, waterGoal: number) => {
+        if (!userProfile) return;
+        const updatedProfile = { ...userProfile, stepGoal, waterGoal };
+        setUserProfile(updatedProfile);
+        const settings = await getUserSettings();
+        if (settings) {
+            await saveUserSettings({ ...settings, profile: updatedProfile });
+        }
+    };
+
+    const completeOnboarding = async (profile: UserProfile) => {
+        const settings: UserSettings = {
+            id: 'default',
+            notifications_enabled: true,
+            isOnboarded: true,
+            currentWeight: profile.currentWeight,
+            activityLevel: profile.activityFactor,
+            profile: profile
+        };
+        await saveUserSettings(settings);
+        setUserProfile(profile);
+        setIsOnboarded(true);
+        setTimelineWeeks(calculateTimelineWeeks(profile.currentWeight, profile.targetWeight));
+    };
+
+    const addCustomExercise = async (exercise: Omit<CustomExercise, 'id'>) => {
+        try {
+            const newExercise = { ...exercise, id: Date.now().toString() };
+            await saveCustomExercise(newExercise);
+            const updatedExercises = await getCustomExercises();
+            setCustomExercises(updatedExercises);
+        } catch (error) {
+            console.error('Error adding exercise:', error);
+        }
+    };
+
+    const removeCustomExercise = async (id: string) => {
+        await deleteCustomExercise(id);
+        setCustomExercises(await getCustomExercises());
+    };
+
+    const toggleExerciseCompletion = async (exerciseId: string) => {
+        const existing = exerciseCompletions.find(c => c.exerciseId === exerciseId);
+        const completion: ExerciseCompletion = {
+            id: `${exerciseId}-${today}`,
+            exerciseId,
+            date: today,
+            completed: existing ? !existing.completed : true
+        };
+        await saveExerciseCompletion(completion);
+        setExerciseCompletions(await getExerciseCompletions(today));
+    };
+
+    const initializeDefaultExercises = async () => {
+        const defaultExercises = getAllDefaultExercises();
+        for (const exercise of defaultExercises) {
+            const existing = await getCustomExercises();
+            if (!existing.find(e => e.id === exercise.id)) {
+                await saveCustomExercise(exercise);
+            }
+        }
+        setCustomExercises(await getCustomExercises());
+    };
+
+    // Calculate dynamic metrics (use stored values if available, otherwise calculate)
+    const metrics = userProfile ? {
+        BMR: userProfile.bmr || calculateBMR(userProfile.currentWeight, userProfile.height, userProfile.age, userProfile.gender),
+        TDEE: userProfile.tdee || calculateTDEE(userProfile.bmr || calculateBMR(userProfile.currentWeight, userProfile.height, userProfile.age, userProfile.gender), userProfile.activityFactor),
+        BMI: userProfile.bmi?.toString() || calculateBMI(userProfile.currentWeight, userProfile.height),
+    } : { BMR: 0, TDEE: 0, BMI: '0' };
 
     return (
         <SarvasvaContext.Provider value={{
-            metrics: dynamicMetrics,
+            userProfile,
+            isOnboarded,
+            metrics,
             dailyLog,
             timelineWeeks,
+            customExercises,
+            exerciseCompletions,
             addSteps,
             addWater,
             addFood,
             addFoodToDb,
             toggleWorkout,
+            toggleExerciseCompletion,
             logAiHours,
             foodDatabase,
             refreshData: loadData,
             updateWeight,
+            updateTargetWeight,
+            updateGoals,
+            completeOnboarding,
+            addCustomExercise,
+            removeCustomExercise,
+            initializeDefaultExercises,
             error
         }}>
             {children}

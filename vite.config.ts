@@ -9,26 +9,26 @@ export default defineConfig({
         VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'icon.png'],
-            manifest: {
-                name: 'Sarvasva - Fitness Tracker',
-                short_name: 'Sarvasva',
-                description: 'Personalized Lifestyle & Fitness Tracker',
-                theme_color: '#6366f1',
-                background_color: '#020617',
-                display: 'standalone',
-                icons: [
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+                runtimeCaching: [
                     {
-                        src: 'icon.png',
-                        sizes: '192x192',
-                        type: 'image/png'
-                    },
-                    {
-                        src: 'icon.png',
-                        sizes: '512x512',
-                        type: 'image/png'
+                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'google-fonts-cache',
+                            expiration: {
+                                maxEntries: 10,
+                                maxAgeSeconds: 60 * 60 * 24 * 365
+                            }
+                        }
                     }
                 ]
-            }
+            },
+            devOptions: {
+                enabled: true
+            },
+            manifest: false
         })
     ],
 })
