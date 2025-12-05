@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { getDailyLog, saveDailyLog, getAllFoodItems, saveFoodItem, getUserSettings, saveUserSettings } from '../lib/db';
-import { USER_DATA, calculateBMR, calculateTDEE, calculateBMI, calculateTimelineWeeks, UserSettings } from '../lib/constants';
+import { getDailyLog, saveDailyLog, getAllFoodItems, saveFoodItem, getUserSettings, saveUserSettings, UserSettings } from '../lib/db';
+import { USER_DATA, calculateBMR, calculateTDEE, calculateBMI, calculateTimelineWeeks } from '../lib/constants';
 
 interface DailyLogState {
     date: string;
@@ -40,7 +40,12 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
     const [dailyLog, setDailyLog] = useState<DailyLogState | null>(null);
     const [timelineWeeks, setTimelineWeeks] = useState(0);
     const [foodDatabase, setFoodDatabase] = useState<{ name: string; calories: number }[]>([]);
-    const [userSettings, setUserSettings] = useState<UserSettings>({ currentWeight: USER_DATA.CURRENT_WEIGHT_KG, activityLevel: USER_DATA.ACTIVITY_FACTOR });
+    const [userSettings, setUserSettings] = useState<UserSettings>({
+        id: 'default',
+        notifications_enabled: true,
+        currentWeight: USER_DATA.CURRENT_WEIGHT_KG,
+        activityLevel: USER_DATA.ACTIVITY_FACTOR
+    });
     const [error, setError] = useState<string | null>(null);
 
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -73,10 +78,21 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
             // Load user settings
             const settings = await getUserSettings();
             if (settings) {
-                setUserSettings(settings);
+                setUserSettings({
+                    ...settings,
+                    currentWeight: settings.currentWeight || USER_DATA.CURRENT_WEIGHT_KG,
+                    activityLevel: settings.activityLevel || USER_DATA.ACTIVITY_FACTOR
+                });
             } else {
                 // Save default settings
-                await saveUserSettings(userSettings);
+                const defaultSettings = {
+                    id: 'default',
+                    notifications_enabled: true,
+                    currentWeight: USER_DATA.CURRENT_WEIGHT_KG,
+                    activityLevel: USER_DATA.ACTIVITY_FACTOR
+                };
+                await saveUserSettings(defaultSettings);
+                setUserSettings(defaultSettings);
             }
 
             // Calculate timeline based on current weight
@@ -143,13 +159,15 @@ export function SarvasvaProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Calculate dynamic metrics
-    const bmr = calculateBMR(userSettings.currentWeight, USER_DATA.HEIGHT_CM, USER_DATA.AGE);
-    const tdee = calculateTDEE(bmr, userSettings.activityLevel);
-    const bmi = calculateBMI(userSettings.currentWeight, USER_DATA.HEIGHT_CM);
+    const currentWeight = userSettings.currentWeight || USER_DATA.CURRENT_WEIGHT_KG;
+    const activityLevel = userSettings.activityLevel || USER_DATA.ACTIVITY_FACTOR;
+    const bmr = calculateBMR(currentWeight, USER_DATA.HEIGHT_CM, USER_DATA.AGE);
+    const tdee = calculateTDEE(bmr, activityLevel);
+    const bmi = calculateBMI(currentWeight, USER_DATA.HEIGHT_CM);
 
     const dynamicMetrics = {
         ...USER_DATA,
-        CURRENT_WEIGHT_KG: userSettings.currentWeight,
+        CURRENT_WEIGHT_KG: currentWeight,
         BMR: bmr,
         TDEE: tdee,
         BMI: bmi,

@@ -48,8 +48,3 @@ export const GREETINGS = {
     EVENING: "Good Evening, Sarvasva 🌆. Push harder.",
     NIGHT: "Good Night, Sarvasva 🌙. Did you earn it?",
 };
-
-export interface UserSettings {
-    currentWeight: number;
-    activityLevel: number;
-}

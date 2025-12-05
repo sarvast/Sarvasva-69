@@ -21,6 +21,8 @@ export interface UserSettings {
     id: string; // 'default'
     theme_preference?: 'light' | 'dark' | 'system';
     notifications_enabled: boolean;
+    currentWeight?: number;
+    activityLevel?: number;
 }
 
 interface SarvasvaDB extends DBSchema {
